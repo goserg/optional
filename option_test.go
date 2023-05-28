@@ -1,10 +1,6 @@
 package optional
 
-import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"testing"
-)
+import "testing"
 
 func TestOptional(t *testing.T) {
 	type TestCase[T any] struct {
@@ -45,25 +41,25 @@ func TestOptional(t *testing.T) {
 			o = None[int]()
 		}
 		get, ok := o.Get()
-		assert.Equal(t, tc.expectedOk, ok)
-		assert.Equal(t, tc.expected, get)
+		Equal(t, tc.expectedOk, ok)
+		Equal(t, tc.expected, get)
 		if tc.expectedOk {
-			assert.Equal(t, tc.expected, o.GetOrElse(777))
+			Equal(t, tc.expected, o.GetOrElse(777))
 		} else {
-			assert.Equal(t, 777, o.GetOrElse(777))
+			Equal(t, 777, o.GetOrElse(777))
 		}
 
 		if tc.expectedOk {
-			require.NotPanics(t, func() {
+			NotPanics(t, func() {
 				o.Must()
 			})
 		} else {
-			require.Panics(t, func() {
+			Panics(t, func() {
 				o.Must()
 			})
 			continue
 		}
-		assert.Equal(t, tc.expected, o.Must())
+		Equal(t, tc.expected, o.Must())
 	}
 }
 
@@ -111,4 +107,29 @@ func BenchmarkStruct(b *testing.B) {
 			ps = o
 		}
 	})
+}
+
+func Equal[T comparable](t *testing.T, expected T, has T) {
+	t.Helper()
+	if expected != has {
+		t.Errorf("expected %v, got %v", expected, has)
+	}
+}
+
+func Panics(t *testing.T, fn func()) {
+	defer func() {
+		if panicMsg := recover(); panicMsg == nil {
+			t.Fatal("expect panic, got nil")
+		}
+	}()
+	fn()
+}
+
+func NotPanics(t *testing.T, fn func()) {
+	defer func() {
+		if panicMsg := recover(); panicMsg != nil {
+			t.Fatalf("unexpected panic: %v", panicMsg)
+		}
+	}()
+	fn()
 }
